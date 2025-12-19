@@ -1,10 +1,15 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Brain, Clock, TrendingUp, RefreshCw, ChevronRight } from "lucide-react"
+import { ArrowLeft, Brain, Clock, TrendingUp, RefreshCw, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
 export default function PracticePage() {
+  const [selectedChallenge, setSelectedChallenge] = useState<number | null>(null)
+
   const challenges = [
     {
       id: 1,
@@ -14,6 +19,16 @@ export default function PracticePage() {
       estimatedTime: "15 min",
       description: "Solve complex quadratic equations using the quadratic formula and factoring methods.",
       icon: "📐",
+      demoContent: {
+        problem: "Solve for x: 2x² + 5x - 3 = 0",
+        steps: [
+          "Identify a=2, b=5, c=-3",
+          "Apply quadratic formula: x = [-b ± √(b²-4ac)] / 2a",
+          "Calculate discriminant: b² - 4ac = 25 + 24 = 49",
+          "Solve: x = (-5 ± 7) / 4",
+        ],
+        answer: "x = 0.5 or x = -3",
+      },
     },
     {
       id: 2,
@@ -23,6 +38,16 @@ export default function PracticePage() {
       estimatedTime: "10 min",
       description: "Apply Newton's three laws of motion to real-world scenarios and calculate forces.",
       icon: "⚡",
+      demoContent: {
+        problem: "A 5kg box is pushed with 20N force. What is its acceleration?",
+        steps: [
+          "Identify: m = 5kg, F = 20N",
+          "Apply Newton's Second Law: F = ma",
+          "Rearrange: a = F / m",
+          "Calculate: a = 20 / 5",
+        ],
+        answer: "a = 4 m/s²",
+      },
     },
     {
       id: 3,
@@ -32,8 +57,21 @@ export default function PracticePage() {
       estimatedTime: "20 min",
       description: "Analyze themes, symbolism, and narrative techniques in classic literature.",
       icon: "📚",
+      demoContent: {
+        problem: "Analyze the symbolism of the green light in 'The Great Gatsby'",
+        steps: [
+          "Identify the recurring symbol throughout the novel",
+          "Connect to Gatsby's dreams and aspirations",
+          "Examine the distance theme (physical and emotional)",
+          "Relate to the American Dream concept",
+        ],
+        answer:
+          "The green light symbolizes Gatsby's unreachable dreams, hope, and the elusive nature of the American Dream.",
+      },
     },
   ]
+
+  const currentChallenge = challenges.find((c) => c.id === selectedChallenge)
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,6 +170,7 @@ export default function PracticePage() {
                 <Card
                   key={challenge.id}
                   className="border-border/50 bg-card hover:shadow-lg transition-all duration-300 group cursor-pointer overflow-hidden"
+                  onClick={() => setSelectedChallenge(challenge.id)}
                 >
                   <CardContent className="p-0">
                     <div className="flex items-stretch">
@@ -212,6 +251,104 @@ export default function PracticePage() {
           </Card>
         </div>
       </main>
+
+      {selectedChallenge && currentChallenge && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-background border border-border rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-auto shadow-2xl animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-background/95 backdrop-blur-sm border-b border-border p-6 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">{currentChallenge.icon}</span>
+                <div>
+                  <h3 className="text-xl font-bold text-foreground">{currentChallenge.topic}</h3>
+                  <p className="text-sm text-muted-foreground">{currentChallenge.subject}</p>
+                </div>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setSelectedChallenge(null)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Problem Statement */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Brain className="h-4 w-4 text-primary" />
+                  </div>
+                  <h4 className="font-semibold text-foreground">Problem</h4>
+                </div>
+                <Card className="border-border/50 bg-muted/30">
+                  <CardContent className="p-6">
+                    <p className="text-lg text-foreground leading-relaxed">{currentChallenge.demoContent.problem}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Solution Steps */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-secondary" />
+                  </div>
+                  <h4 className="font-semibold text-foreground">Step-by-Step Solution</h4>
+                </div>
+                <div className="space-y-3">
+                  {currentChallenge.demoContent.steps.map((step, index) => (
+                    <div key={index} className="flex gap-4 items-start">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                        <span className="text-sm font-semibold text-primary">{index + 1}</span>
+                      </div>
+                      <div className="flex-1 pt-1.5">
+                        <p className="text-foreground leading-relaxed">{step}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Final Answer */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                    <ChevronRight className="h-4 w-4 text-accent" />
+                  </div>
+                  <h4 className="font-semibold text-foreground">Answer</h4>
+                </div>
+                <Card className="border-border/50 bg-gradient-to-br from-accent/5 to-primary/5">
+                  <CardContent className="p-6">
+                    <p className="text-lg font-medium text-foreground leading-relaxed">
+                      {currentChallenge.demoContent.answer}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button className="flex-1 gap-2" size="lg">
+                  <Brain className="h-4 w-4" />
+                  Start This Challenge
+                </Button>
+                <Button variant="outline" size="lg" onClick={() => setSelectedChallenge(null)}>
+                  Close Preview
+                </Button>
+              </div>
+
+              {/* Hint Box */}
+              <Card className="border-accent/30 bg-accent/5">
+                <CardContent className="p-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="font-medium text-accent">💡 Pro Tip:</span> This is just a preview. When you start
+                    the actual challenge, steps will be revealed one at a time as you work through the problem.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
