@@ -1,10 +1,37 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Brain, Sparkles, BookOpen, MessageSquare, Mic, TrendingUp, Clock, Target, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { practiceStorage } from "@/lib/practice-storage"
 
 export default function DashboardPage() {
+  const [practiceStats, setPracticeStats] = useState({
+    completed: 0,
+    totalQuestions: 0,
+    averageAccuracy: 0,
+    totalTime: 0,
+  })
+
+  useEffect(() => {
+    const records = practiceStorage.getPracticeRecords()
+    const totalCompleted = records.length
+    const totalQuestions = records.reduce((sum, r) => sum + r.totalQuestions, 0)
+    const totalTime = records.reduce((sum, r) => sum + r.timeSpent, 0)
+    const averageAccuracy = records.length > 0
+      ? Math.round(records.reduce((sum, r) => sum + r.accuracy, 0) / records.length)
+      : 0
+
+    setPracticeStats({
+      completed: totalCompleted,
+      totalQuestions,
+      averageAccuracy,
+      totalTime,
+    })
+  }, [])
   const modules = [
     {
       id: "practice",
@@ -12,7 +39,7 @@ export default function DashboardPage() {
       icon: Brain,
       href: "/practice",
       color: "secondary",
-      stats: { completed: 47, streak: 12 },
+      stats: { completed: practiceStats.completed, accuracy: practiceStats.averageAccuracy },
     },
     {
       id: "solver",
@@ -48,21 +75,94 @@ export default function DashboardPage() {
     },
   ]
 
-  const progressData = [
-    { day: "Mon", value: 70 },
-    { day: "Tue", value: 85 },
-    { day: "Wed", value: 60 },
-    { day: "Thu", value: 90 },
-    { day: "Fri", value: 75 },
-    { day: "Sat", value: 95 },
-    { day: "Sun", value: 80 },
-  ]
+  const [progressData, setProgressData] = useState([
+    { day: "Mon", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Tue", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Wed", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Thu", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Fri", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Sat", value: 0, sessions: 0, timeSpent: 0 },
+    { day: "Sun", value: 0, sessions: 0, timeSpent: 0 },
+  ])
 
-  const recentActivity = [
-    { type: "practice", action: "Completed 3 quadratic equations", time: "2 hours ago", color: "secondary" },
-    { type: "library", action: "Read article on Quantum Physics", time: "5 hours ago", color: "primary" },
-    { type: "speak", action: "Practiced conversation for 15 minutes", time: "Yesterday", color: "accent" },
-  ]
+  useEffect(() => {
+    const records = practiceStorage.getPracticeRecords()
+    const today = new Date()
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+    // Get the past 7 days
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today)
+      date.setDate(date.getDate() - (6 - i))
+      return {
+        dayName: dayNames[date.getDay()],
+        dateStr: date.toDateString(),
+      }
+    })
+
+    // Calculate data for each day
+    const newProgressData = last7Days.map(({ dayName, dateStr }) => {
+      const dayRecords = records.filter((record) => {
+        const recordDate = new Date(record.date)
+        return recordDate.toDateString() === dateStr
+      })
+
+      const sessions = dayRecords.length
+      const timeSpent = dayRecords.reduce((sum, r) => sum + r.timeSpent, 0)
+      const totalQuestions = dayRecords.reduce((sum, r) => sum + r.totalQuestions, 0)
+
+      // Value based on number of questions answered (0-100 scale)
+      const value = Math.min(100, (totalQuestions / 10) * 100)
+
+      return {
+        day: dayName,
+        value: Math.round(value),
+        sessions,
+        timeSpent,
+      }
+    })
+
+    setProgressData(newProgressData)
+  }, [practiceStats])
+
+  const [recentActivity, setRecentActivity] = useState<Array<{
+    type: string
+    action: string
+    time: string
+    color: string
+  }>>([])
+
+  useEffect(() => {
+    const records = practiceStorage.getPracticeRecords()
+    const activities = records.slice(0, 5).map((record) => {
+      const recordDate = new Date(record.date)
+      const now = new Date()
+      const diffMs = now.getTime() - recordDate.getTime()
+      const diffMins = Math.floor(diffMs / 60000)
+      const diffHours = Math.floor(diffMs / 3600000)
+      const diffDays = Math.floor(diffMs / 86400000)
+
+      let timeStr = ""
+      if (diffMins < 60) {
+        timeStr = `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`
+      } else if (diffHours < 24) {
+        timeStr = `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`
+      } else if (diffDays === 1) {
+        timeStr = "Yesterday"
+      } else {
+        timeStr = `${diffDays} days ago`
+      }
+
+      return {
+        type: "practice",
+        action: `Completed ${record.totalQuestions} questions on ${record.topic}`,
+        time: timeStr,
+        color: record.accuracy >= 80 ? "primary" : record.accuracy >= 60 ? "secondary" : "accent",
+      }
+    })
+
+    setRecentActivity(activities)
+  }, [practiceStats])
 
   return (
     <div className="min-h-screen bg-background">
@@ -131,12 +231,12 @@ export default function DashboardPage() {
                       <TrendingUp className="h-5 w-5 text-primary" />
                     </div>
                     <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
-                      +12%
+                      Practice
                     </Badge>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold text-foreground">89%</p>
-                    <p className="text-sm text-muted-foreground">Overall Progress</p>
+                    <p className="text-2xl font-bold text-foreground">{practiceStats.averageAccuracy}%</p>
+                    <p className="text-sm text-muted-foreground">Average Accuracy</p>
                   </div>
                 </CardContent>
               </Card>
@@ -148,12 +248,12 @@ export default function DashboardPage() {
                       <Clock className="h-5 w-5 text-secondary" />
                     </div>
                     <Badge variant="secondary" className="bg-secondary/10 text-secondary text-xs">
-                      12 days
+                      Sessions
                     </Badge>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold text-foreground">47</p>
-                    <p className="text-sm text-muted-foreground">Current Streak</p>
+                    <p className="text-2xl font-bold text-foreground">{practiceStats.completed}</p>
+                    <p className="text-sm text-muted-foreground">Practice Sessions</p>
                   </div>
                 </CardContent>
               </Card>
@@ -166,8 +266,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold text-foreground">142</p>
-                    <p className="text-sm text-muted-foreground">Problems Solved</p>
+                    <p className="text-2xl font-bold text-foreground">{practiceStats.totalQuestions}</p>
+                    <p className="text-sm text-muted-foreground">Questions Answered</p>
                   </div>
                 </CardContent>
               </Card>
@@ -180,7 +280,11 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-2xl font-bold text-foreground">8.2h</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {practiceStats.totalTime < 60
+                        ? `${practiceStats.totalTime}m`
+                        : `${Math.floor(practiceStats.totalTime / 60)}h ${practiceStats.totalTime % 60}m`}
+                    </p>
                     <p className="text-sm text-muted-foreground">Learning Time</p>
                   </div>
                 </CardContent>
