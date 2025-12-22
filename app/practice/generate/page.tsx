@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ArrowLeft, Brain, Zap, CheckCircle2, XCircle, Clock, Award, TrendingDown, Sparkles, Loader2 } from "lucide-react"
+import { ArrowLeft, Brain, Zap, CheckCircle2, XCircle, Clock, Award, TrendingDown, Sparkles, Loader2, Home, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -320,10 +320,17 @@ export default function GeneratePracticePage() {
       <header className="border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Home className="h-4 w-4" />
+                Dashboard
+              </Button>
+            </Link>
+            <div className="h-6 w-px bg-border" />
             <Link href="/practice">
               <Button variant="ghost" size="sm" className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Back
+                Practice
               </Button>
             </Link>
             <div className="h-6 w-px bg-border" />
@@ -669,6 +676,20 @@ export default function GeneratePracticePage() {
                                   <div className="bg-accent/10 p-3 rounded-lg mt-2">
                                     <p className="text-muted-foreground font-medium mb-1">Explanation:</p>
                                     <p className="text-foreground">{question.explanation}</p>
+                                  </div>
+
+                                  {/* Deep Analysis Button */}
+                                  <div className="pt-2">
+                                    <Link
+                                      href={`/solver?question=${encodeURIComponent(question.question)}&answer=${encodeURIComponent(question.correctAnswer)}&context=${encodeURIComponent(`Topic: ${selectedPoint?.name || 'Practice'}`)}`}
+                                      target="_blank"
+                                    >
+                                      <Button variant="outline" size="sm" className="w-full gap-2">
+                                        <Brain className="h-4 w-4" />
+                                        Deep Analysis with AI Solver
+                                        <ExternalLink className="h-3 w-3" />
+                                      </Button>
+                                    </Link>
                                   </div>
                                 </div>
                               </div>
