@@ -683,6 +683,7 @@ export default function GeneratePracticePage() {
                                     <Link
                                       href={`/solver?question=${encodeURIComponent(question.question)}&answer=${encodeURIComponent(question.correctAnswer)}&context=${encodeURIComponent(`Topic: ${selectedPoint?.name || 'Practice'}`)}`}
                                       target="_blank"
+                                      rel="noopener noreferrer"
                                     >
                                       <Button variant="outline" size="sm" className="w-full gap-2">
                                         <Brain className="h-4 w-4" />
