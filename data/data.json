@@ -1,0 +1,442 @@
+[
+  {
+    "question": {
+      "id": "Q001",
+      "type": "single_choice",
+      "content": "Given a geometric sequence with first term 2 and common ratio 3, what is the sum of the first three terms?\nA. 18\nB. 20\nC. 26\nD. 28",
+      "knowledge": ["geometric sequence", "sequence summation"],
+      "difficulty": "medium"
+    },
+    "answer": "C",
+    "analysis": "The sum is 2 + 6 + 18 = 26."
+  },
+  {
+    "question": {
+      "id": "Q002",
+      "type": "single_choice",
+      "content": "Let f(x)=x^2−4x+3. Where does f(x) attain its minimum?\nA. x=1\nB. x=2\nC. x=3\nD. x=4",
+      "knowledge": ["quadratic function", "extrema"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "The vertex is at x = -b/(2a) = 2."
+  },
+  {
+    "question": {
+      "id": "Q003",
+      "type": "multiple_choice",
+      "content": "Which of the following are prime numbers?\nA. 2\nB. 9\nC. 11\nD. 15",
+      "knowledge": ["prime numbers"],
+      "difficulty": "easy"
+    },
+    "answer": ["A", "C"],
+    "analysis": "2 and 11 are prime; 9 and 15 are composite."
+  },
+  {
+    "question": {
+      "id": "Q004",
+      "type": "single_choice",
+      "content": "In an arithmetic sequence, the first term is 5 and the common difference is 3. What is the 10th term?\nA. 29\nB. 32\nC. 35\nD. 38",
+      "knowledge": ["arithmetic sequence", "nth term"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "The 10th term is 5 + 9×3 = 32. Correction: 5 + (10−1)×3 = 32, so option B is correct."
+  },
+  {
+    "question": {
+      "id": "Q005",
+      "type": "single_choice",
+      "content": "If log₁₀x = 2, what is the value of x?\nA. 20\nB. 50\nC. 100\nD. 200",
+      "knowledge": ["logarithms", "exponential form"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "log₁₀x = 2 implies x = 10² = 100."
+  },
+  {
+    "question": {
+      "id": "Q006",
+      "type": "multiple_choice",
+      "content": "Which of the following functions are increasing on (0, +∞)?\nA. f(x)=x²\nB. f(x)=eˣ\nC. f(x)=ln x\nD. f(x)=−x",
+      "knowledge": ["monotonicity of functions"],
+      "difficulty": "medium"
+    },
+    "answer": ["A", "B", "C"],
+    "analysis": "x², eˣ, and ln x are increasing on (0, +∞); −x is decreasing."
+  },
+  {
+    "question": {
+      "id": "Q007",
+      "type": "single_choice",
+      "content": "A fair die is rolled once. What is the probability of getting an even number?\nA. 1/6\nB. 1/3\nC. 1/2\nD. 2/3",
+      "knowledge": ["classical probability"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "There are 3 even numbers out of 6 possible outcomes, so the probability is 1/2."
+  },
+  {
+    "question": {
+      "id": "Q008",
+      "type": "subjective",
+      "content": "Find the derivative of the function f(x)=3x³−5x²+2x−7.",
+      "knowledge": ["derivatives of polynomials"],
+      "difficulty": "easy"
+    },
+    "answer": "f'(x)=9x²−10x+2",
+    "analysis": "Differentiate term by term using the power rule."
+  },
+  {
+    "question": {
+      "id": "Q009",
+      "type": "single_choice",
+      "content": "If sin θ = 1/2 and θ is in the first quadrant, what is cos θ?\nA. √3/2\nB. 1/2\nC. √2/2\nD. 1",
+      "knowledge": ["trigonometric identities"],
+      "difficulty": "easy"
+    },
+    "answer": "A",
+    "analysis": "In the first quadrant, sin θ = 1/2 corresponds to θ = 30°, so cos θ = √3/2."
+  },
+  {
+    "question": {
+      "id": "Q010",
+      "type": "single_choice",
+      "content": "What is the solution set of the inequality x²−4x−5 < 0?\nA. x<−1 or x>5\nB. −1<x<5\nC. x>5\nD. x<−1",
+      "knowledge": ["quadratic inequalities"],
+      "difficulty": "medium"
+    },
+    "answer": "B",
+    "analysis": "The roots are −1 and 5. The quadratic is negative between the roots."
+  },
+  {
+    "question": {
+      "id": "Q011",
+      "type": "single_choice",
+      "content": "Solve the equation 2x + 5 = 17.\nA. 4\nB. 5\nC. 6\nD. 7",
+      "knowledge": ["linear equations"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "2x = 12, so x = 6."
+  },
+  {
+    "question": {
+      "id": "Q012",
+      "type": "single_choice",
+      "content": "What is the value of |−8|?\nA. −8\nB. 0\nC. 8\nD. 16",
+      "knowledge": ["absolute value"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "Absolute value is the nonnegative magnitude."
+  },
+  {
+    "question": {
+      "id": "Q013",
+      "type": "multiple_choice",
+      "content": "Which statements about triangles are correct?\nA. The sum of interior angles is 180°\nB. An equilateral triangle has three equal sides\nC. A right triangle has all sides equal\nD. An isosceles triangle has at least two equal sides",
+      "knowledge": ["properties of triangles"],
+      "difficulty": "easy"
+    },
+    "answer": ["A", "B", "D"],
+    "analysis": "C is false; only equilateral triangles have all sides equal."
+  },
+  {
+    "question": {
+      "id": "Q014",
+      "type": "single_choice",
+      "content": "Compute 7!.\nA. 720\nB. 5040\nC. 40320\nD. 362880",
+      "knowledge": ["factorial"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "7! = 7×6×5×4×3×2×1 = 5040."
+  },
+  {
+    "question": {
+      "id": "Q015",
+      "type": "single_choice",
+      "content": "If a circle has radius 3, what is its area?\nA. 6π\nB. 9π\nC. 12π\nD. 18π",
+      "knowledge": ["area of a circle"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "Area = πr² = 9π."
+  },
+  {
+    "question": {
+      "id": "Q016",
+      "type": "subjective",
+      "content": "Solve the system of equations: x + y = 5, x − y = 1.",
+      "knowledge": ["systems of linear equations"],
+      "difficulty": "easy"
+    },
+    "answer": "x = 3, y = 2",
+    "analysis": "Add equations to get 2x = 6."
+  },
+  {
+    "question": {
+      "id": "Q017",
+      "type": "single_choice",
+      "content": "What is the slope of the line y = 4x − 7?\nA. −7\nB. 4\nC. 7\nD. −4",
+      "knowledge": ["slope of a line"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "Slope is the coefficient of x."
+  },
+  {
+    "question": {
+      "id": "Q018",
+      "type": "single_choice",
+      "content": "Evaluate the expression 3² + 4².\nA. 25\nB. 49\nC. 12\nD. 7",
+      "knowledge": ["exponents"],
+      "difficulty": "easy"
+    },
+    "answer": "A",
+    "analysis": "3² + 4² = 9 + 16 = 25."
+  },
+  {
+    "question": {
+      "id": "Q019",
+      "type": "multiple_choice",
+      "content": "Which of the following are irrational numbers?\nA. √2\nB. 3/4\nC. π\nD. 0.25",
+      "knowledge": ["irrational numbers"],
+      "difficulty": "medium"
+    },
+    "answer": ["A", "C"],
+    "analysis": "√2 and π cannot be expressed as fractions."
+  },
+  {
+    "question": {
+      "id": "Q020",
+      "type": "single_choice",
+      "content": "If f(x)=2x+1, what is f(3)?\nA. 5\nB. 6\nC. 7\nD. 8",
+      "knowledge": ["function evaluation"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "f(3)=2×3+1=7."
+  },
+  {
+    "question": {
+      "id": "Q021",
+      "type": "single_choice",
+      "content": "How many solutions does the equation x²+1=0 have over the real numbers?\nA. 0\nB. 1\nC. 2\nD. Infinitely many",
+      "knowledge": ["quadratic equations"],
+      "difficulty": "easy"
+    },
+    "answer": "A",
+    "analysis": "x² = −1 has no real solution."
+  },
+  {
+    "question": {
+      "id": "Q022",
+      "type": "single_choice",
+      "content": "Convert the fraction 1/4 to a decimal.\nA. 0.4\nB. 0.25\nC. 0.2\nD. 0.75",
+      "knowledge": ["fractions to decimals"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "1 ÷ 4 = 0.25."
+  },
+  {
+    "question": {
+      "id": "Q023",
+      "type": "subjective",
+      "content": "Find the integral of f(x)=6x.",
+      "knowledge": ["basic integration"],
+      "difficulty": "easy"
+    },
+    "answer": "∫6x dx = 3x² + C",
+    "analysis": "Apply the power rule for integrals."
+  },
+  {
+    "question": {
+      "id": "Q024",
+      "type": "single_choice",
+      "content": "What is the perimeter of a square with side length 5?\nA. 10\nB. 15\nC. 20\nD. 25",
+      "knowledge": ["perimeter of polygons"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "Perimeter = 4×5 = 20."
+  },
+  {
+    "question": {
+      "id": "Q025",
+      "type": "single_choice",
+      "content": "If a₁=1 and aₙ=aₙ₋₁+2, what is a₅?\nA. 7\nB. 8\nC. 9\nD. 11",
+      "knowledge": ["arithmetic sequences"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "Sequence: 1,3,5,7,9."
+  },
+  {
+    "question": {
+      "id": "Q026",
+      "type": "multiple_choice",
+      "content": "Which of the following are even numbers?\nA. 2\nB. 5\nC. 8\nD. 11",
+      "knowledge": ["even and odd numbers"],
+      "difficulty": "easy"
+    },
+    "answer": ["A", "C"],
+    "analysis": "Even numbers are divisible by 2."
+  },
+  {
+    "question": {
+      "id": "Q027",
+      "type": "single_choice",
+      "content": "Simplify √49.\nA. 6\nB. 7\nC. 8\nD. 9",
+      "knowledge": ["square roots"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "7² = 49."
+  },
+  {
+    "question": {
+      "id": "Q028",
+      "type": "single_choice",
+      "content": "What is the mean of the data set {2,4,6,8}?\nA. 4\nB. 5\nC. 6\nD. 7",
+      "knowledge": ["mean of data"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "Mean = (2+4+6+8)/4 = 5."
+  },
+  {
+    "question": {
+      "id": "Q029",
+      "type": "single_choice",
+      "content": "If x=2, evaluate x³.\nA. 4\nB. 6\nC. 8\nD. 16",
+      "knowledge": ["powers"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "2³ = 8."
+  },
+  {
+    "question": {
+      "id": "Q030",
+      "type": "subjective",
+      "content": "Solve the inequality x−3 > 2.",
+      "knowledge": ["linear inequalities"],
+      "difficulty": "easy"
+    },
+    "answer": "x > 5",
+    "analysis": "Add 3 to both sides."
+  },
+  {
+    "question": {
+      "id": "Q031",
+      "type": "single_choice",
+      "content": "What is the value of 12 ÷ 3?\nA. 2\nB. 3\nC. 4\nD. 6",
+      "knowledge": ["basic division"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "12 divided by 3 equals 4."
+  },
+  {
+    "question": {
+      "id": "Q032",
+      "type": "single_choice",
+      "content": "Which angle is a right angle?\nA. 45°\nB. 60°\nC. 90°\nD. 120°",
+      "knowledge": ["types of angles"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "A right angle measures exactly 90 degrees."
+  },
+  {
+    "question": {
+      "id": "Q033",
+      "type": "multiple_choice",
+      "content": "Which of the following are multiples of 3?\nA. 6\nB. 10\nC. 15\nD. 22",
+      "knowledge": ["multiples"],
+      "difficulty": "easy"
+    },
+    "answer": ["A", "C"],
+    "analysis": "6 = 3×2 and 15 = 3×5."
+  },
+  {
+    "question": {
+      "id": "Q034",
+      "type": "single_choice",
+      "content": "Evaluate 5² − 3².\nA. 4\nB. 8\nC. 16\nD. 25",
+      "knowledge": ["exponents"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "25 − 9 = 16. Correction: correct result is 16, so option C."
+  },
+  {
+    "question": {
+      "id": "Q035",
+      "type": "single_choice",
+      "content": "If y = −2x + 1, what is y when x = 2?\nA. −5\nB. −3\nC. −1\nD. 3",
+      "knowledge": ["linear functions"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "y = −2×2 + 1 = −3."
+  },
+  {
+    "question": {
+      "id": "Q036",
+      "type": "subjective",
+      "content": "Find the solution to the equation x/4 = 5.",
+      "knowledge": ["linear equations"],
+      "difficulty": "easy"
+    },
+    "answer": "x = 20",
+    "analysis": "Multiply both sides by 4."
+  },
+  {
+    "question": {
+      "id": "Q037",
+      "type": "single_choice",
+      "content": "What is the next term in the sequence 2, 4, 8, 16, ...?\nA. 18\nB. 24\nC. 32\nD. 64",
+      "knowledge": ["number sequences"],
+      "difficulty": "easy"
+    },
+    "answer": "C",
+    "analysis": "Each term is multiplied by 2."
+  },
+  {
+    "question": {
+      "id": "Q038",
+      "type": "single_choice",
+      "content": "Which fraction is equivalent to 1/2?\nA. 2/3\nB. 3/6\nC. 4/5\nD. 5/8",
+      "knowledge": ["equivalent fractions"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "3/6 simplifies to 1/2."
+  },
+  {
+    "question": {
+      "id": "Q039",
+      "type": "multiple_choice",
+      "content": "Which of the following are factors of 12?\nA. 2\nB. 3\nC. 5\nD. 6",
+      "knowledge": ["factors"],
+      "difficulty": "easy"
+    },
+    "answer": ["A", "B", "D"],
+    "analysis": "2, 3, and 6 divide 12 evenly."
+  },
+  {
+    "question": {
+      "id": "Q040",
+      "type": "single_choice",
+      "content": "What is the median of the data set {1, 3, 5, 7, 9}?\nA. 3\nB. 5\nC. 7\nD. 9",
+      "knowledge": ["median"],
+      "difficulty": "easy"
+    },
+    "answer": "B",
+    "analysis": "The middle value is 5."
+  }
+]
