@@ -33,7 +33,7 @@ export default function PracticePage() {
 
             {/* Two Main Buttons */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Student Practice Records Panel */}
+              {/* Records & Knowledge Map */}
               <Card className="border-border/50 bg-card hover:shadow-lg transition-all duration-300 group overflow-hidden">
                 <Link href="/practice/records">
                   <CardContent className="p-8">
@@ -44,38 +44,38 @@ export default function PracticePage() {
                         </div>
                       </div>
                       <div className="text-center space-y-2">
-                        <h2 className="text-2xl font-semibold text-foreground">Practice Records</h2>
+                        <h2 className="text-2xl font-semibold text-foreground">Records & Knowledge Map</h2>
                         <p className="text-sm text-muted-foreground">
-                          View your practice history and track your progress
+                          View your practice history and explore the interactive knowledge graph
                         </p>
                       </div>
                       <Button className="w-full gap-2" size="lg">
-                        View Records
+                        View Records & Map
                         <History className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
                 </Link>
-                </Card>
+              </Card>
 
-              {/* Problem Generation */}
+              {/* Practice (Question Bank + Personalized) */}
               <Card className="border-border/50 bg-card hover:shadow-lg transition-all duration-300 group overflow-hidden">
                 <Link href="/practice/generate">
-            <CardContent className="p-8">
+                  <CardContent className="p-8">
                     <div className="space-y-6">
                       <div className="flex items-center justify-center">
                         <div className="h-24 w-24 rounded-2xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
                           <Sparkles className="h-12 w-12 text-secondary" />
-                </div>
+                        </div>
                       </div>
                       <div className="text-center space-y-2">
-                        <h2 className="text-2xl font-semibold text-foreground">Generate Problems</h2>
+                        <h2 className="text-2xl font-semibold text-foreground">Practice</h2>
                         <p className="text-sm text-muted-foreground">
-                          Create new practice problems tailored to your needs
+                          Browse full question bank by topic or generate personalized practice
                         </p>
                       </div>
                       <Button className="w-full gap-2" size="lg" variant="secondary">
-                        Generate Problems
+                        Start Practice
                         <Sparkles className="h-4 w-4" />
                       </Button>
                     </div>
