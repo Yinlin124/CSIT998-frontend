@@ -1,23 +1,32 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
-import { ArrowLeft, Brain, Zap, CheckCircle2, XCircle, Clock, Award, TrendingDown, Sparkles, Loader2, Home, ExternalLink } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowLeft, Brain, Zap, CheckCircle2, XCircle, Clock, Award, TrendingDown, Sparkles, Loader2, Home, ExternalLink, BookOpen, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { practiceStorage } from "@/lib/practice-storage"
 import { WeakKnowledgePoint, Question, UserAnswer, PracticeRecord } from "@/types/practice"
+import { extractKnowledgePoints, generateKnowledgeGraph, getWeakestKnowledgePoints } from "@/lib/knowledge-graph"
+import { QuestionGenerationModal, QuestionGenerationConfig } from "@/components/question-generation-modal"
+import { RichTextEditor } from "@/components/rich-text-editor"
+import { QuestionTimer } from "@/components/question-timer"
+import questionsData from "@/data/data.json"
 
 type ViewMode = "selection" | "practice" | "analysis"
 type GeneratingStep = "analyzing" | "identifying" | "generating" | "done"
 
 export default function GeneratePracticePage() {
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>("selection")
   const [weakPoints, setWeakPoints] = useState<WeakKnowledgePoint[]>([])
   const [selectedPoint, setSelectedPoint] = useState<WeakKnowledgePoint | null>(null)
@@ -30,33 +39,220 @@ export default function GeneratePracticePage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatingStep, setGeneratingStep] = useState<GeneratingStep>("analyzing")
   const [generatingProgress, setGeneratingProgress] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Knowledge graph for personalized practice (static/memoized - won't regenerate on re-renders)
+  const knowledgeGraph = useMemo(() => generateKnowledgeGraph(questionsData), [])
+  const weakestPoints = useMemo(() => getWeakestKnowledgePoints(knowledgeGraph, 10), [knowledgeGraph])
+
+  // Question bank data
+  const knowledgePoints = extractKnowledgePoints(questionsData)
+  const questionsByKnowledge = new Map<string, any[]>()
+
+  questionsData.forEach(item => {
+    if (item.question?.knowledge) {
+      item.question.knowledge.forEach((k: string) => {
+        if (!questionsByKnowledge.has(k)) {
+          questionsByKnowledge.set(k, [])
+        }
+        questionsByKnowledge.get(k)?.push(item)
+      })
+    }
+  })
+
+  // Group knowledge points by category
+  const knowledgeRelationships: Record<string, string> = {
+    "absolute value": "Basic Math",
+    "basic division": "Basic Math",
+    "even and odd numbers": "Basic Math",
+    "multiples": "Basic Math",
+    "factors": "Basic Math",
+    "square roots": "Basic Math",
+    "exponents": "Basic Math",
+    "powers": "Basic Math",
+    "fractions to decimals": "Basic Math",
+    "equivalent fractions": "Basic Math",
+    "factorial": "Basic Math",
+    "linear equations": "Algebra",
+    "linear inequalities": "Algebra",
+    "linear functions": "Algebra",
+    "slope of a line": "Algebra",
+    "systems of linear equations": "Algebra",
+    "quadratic function": "Algebra",
+    "quadratic equations": "Algebra",
+    "quadratic inequalities": "Algebra",
+    "extrema": "Algebra",
+    "arithmetic sequence": "Sequences",
+    "arithmetic sequences": "Sequences",
+    "nth term": "Sequences",
+    "geometric sequence": "Sequences",
+    "sequence summation": "Sequences",
+    "number sequences": "Sequences",
+    "function evaluation": "Functions",
+    "monotonicity of functions": "Functions",
+    "derivatives of polynomials": "Calculus",
+    "basic integration": "Calculus",
+    "trigonometric identities": "Trigonometry",
+    "types of angles": "Geometry",
+    "properties of triangles": "Geometry",
+    "area of a circle": "Geometry",
+    "perimeter of polygons": "Geometry",
+    "logarithms": "Logarithms",
+    "exponential form": "Logarithms",
+    "classical probability": "Statistics",
+    "mean of data": "Statistics",
+    "median": "Statistics",
+    "prime numbers": "Number Theory",
+    "irrational numbers": "Number Theory",
+  }
+
+  const categorizedKnowledge = new Map<string, string[]>()
+  knowledgePoints.forEach(kp => {
+    const category = knowledgeRelationships[kp] || "Other"
+    if (!categorizedKnowledge.has(category)) {
+      categorizedKnowledge.set(category, [])
+    }
+    categorizedKnowledge.get(category)?.push(kp)
+  })
+
+  const categories = Array.from(categorizedKnowledge.keys()).sort()
 
   useEffect(() => {
-    const points = practiceStorage.getWeakPoints()
-    setWeakPoints(points.sort((a, b) => b.weaknessLevel - a.weaknessLevel))
+    // Check if we have generated questions from elsewhere
+    const storedQuestions = localStorage.getItem('generatedQuestions')
+    const storedConfig = localStorage.getItem('questionConfig')
+
+    if (storedQuestions && storedConfig) {
+      try {
+        const parsedQuestions = JSON.parse(storedQuestions)
+        const parsedConfig = JSON.parse(storedConfig)
+
+        // Convert questions to internal format
+        const convertedQuestions: Question[] = parsedQuestions.map((item: any, index: number) => ({
+          id: `q${index + 1}`,
+          question: item.question.content,
+          type: item.question.type === 'single_choice' || item.question.type === 'multiple_choice' ? 'multiple-choice' : 'short-answer',
+          options: item.question.type === 'single_choice' || item.question.type === 'multiple_choice'
+            ? item.question.content.split('\n').filter((line: string) => /^[A-D]\./.test(line))
+            : undefined,
+          correctAnswer: typeof item.answer === 'string' ? item.answer : item.answer.join(', '),
+          explanation: item.analysis || 'No explanation available.',
+          knowledgePoint: parsedConfig.knowledgePoints.join(', ')
+        }))
+
+        const virtualPoint: WeakKnowledgePoint = {
+          id: 'custom',
+          name: parsedConfig.knowledgePoints.join(', '),
+          category: 'Custom Practice',
+          weaknessLevel: 70,
+          questionsAnswered: 0,
+          correctRate: 50
+        }
+
+        setQuestions(convertedQuestions)
+        setSelectedPoint(virtualPoint)
+        setViewMode("practice")
+        setStartTime(new Date())
+        setQuestionStartTime(new Date())
+
+        localStorage.removeItem('generatedQuestions')
+        localStorage.removeItem('questionConfig')
+      } catch (error) {
+        console.error('Failed to parse generated questions:', error)
+        const points = practiceStorage.getWeakPoints()
+        setWeakPoints(points.sort((a, b) => b.weaknessLevel - a.weaknessLevel))
+      }
+    } else {
+      const points = practiceStorage.getWeakPoints()
+      setWeakPoints(points.sort((a, b) => b.weaknessLevel - a.weaknessLevel))
+    }
   }, [])
+
+  const handleKnowledgePointClick = (knowledgePoint: string) => {
+    const pointQuestions = questionsByKnowledge.get(knowledgePoint) || []
+    const shuffled = [...pointQuestions].sort(() => Math.random() - 0.5)
+
+    // Convert to internal format
+    const convertedQuestions: Question[] = shuffled.map((item: any, index: number) => ({
+      id: `q${index + 1}`,
+      question: item.question.content,
+      type: item.question.type === 'single_choice' || item.question.type === 'multiple_choice' ? 'multiple-choice' : 'short-answer',
+      options: item.question.type === 'single_choice' || item.question.type === 'multiple_choice'
+        ? item.question.content.split('\n').filter((line: string) => /^[A-D]\./.test(line))
+        : undefined,
+      correctAnswer: typeof item.answer === 'string' ? item.answer : item.answer.join(', '),
+      explanation: item.analysis || 'No explanation available.',
+      knowledgePoint: knowledgePoint
+    }))
+
+    const virtualPoint: WeakKnowledgePoint = {
+      id: 'topic',
+      name: knowledgePoint,
+      category: 'Topic Practice',
+      weaknessLevel: 50,
+      questionsAnswered: 0,
+      correctRate: 50
+    }
+
+    setQuestions(convertedQuestions)
+    setSelectedPoint(virtualPoint)
+    setViewMode("practice")
+    setStartTime(new Date())
+    setQuestionStartTime(new Date())
+  }
+
+  const handleGenerateQuestions = (config: QuestionGenerationConfig) => {
+    // Directly pull requested quantity from data.json - ignore knowledge points and difficulty (use static/dead data)
+    const shuffled = [...questionsData].sort(() => Math.random() - 0.5)
+    const selectedQuestions = shuffled.slice(0, config.quantity)
+
+    // Convert to internal format
+    const convertedQuestions: Question[] = selectedQuestions.map((item: any, index: number) => ({
+      id: `q${index + 1}`,
+      question: item.question.content,
+      type: item.question.type === 'single_choice' || item.question.type === 'multiple_choice' ? 'multiple-choice' : 'short-answer',
+      options: item.question.type === 'single_choice' || item.question.type === 'multiple_choice'
+        ? item.question.content.split('\n').filter((line: string) => /^[A-D]\./.test(line))
+        : undefined,
+      correctAnswer: typeof item.answer === 'string' ? item.answer : item.answer.join(', '),
+      explanation: item.analysis || 'No explanation available.',
+      knowledgePoint: config.knowledgePoints.join(', ')
+    }))
+
+    const virtualPoint: WeakKnowledgePoint = {
+      id: 'personalized',
+      name: 'Personalized Practice',
+      category: 'AI Generated',
+      weaknessLevel: 70,
+      questionsAnswered: 0,
+      correctRate: 50
+    }
+
+    setQuestions(convertedQuestions)
+    setSelectedPoint(virtualPoint)
+    setViewMode("practice")
+    setStartTime(new Date())
+    setQuestionStartTime(new Date())
+    setIsModalOpen(false)
+  }
 
   const simulateGeneration = async (point: WeakKnowledgePoint) => {
     setIsGenerating(true)
     setSelectedPoint(point)
     setGeneratingProgress(0)
 
-    // Step 1: Analyzing student performance
     setGeneratingStep("analyzing")
     await new Promise((resolve) => setTimeout(resolve, 1200))
     setGeneratingProgress(33)
 
-    // Step 2: Identifying weak areas
     setGeneratingStep("identifying")
     await new Promise((resolve) => setTimeout(resolve, 1000))
     setGeneratingProgress(66)
 
-    // Step 3: Generating questions
     setGeneratingStep("generating")
     await new Promise((resolve) => setTimeout(resolve, 1200))
     setGeneratingProgress(100)
 
-    // Step 4: Done
     setGeneratingStep("done")
     await new Promise((resolve) => setTimeout(resolve, 500))
 
@@ -124,63 +320,6 @@ export default function GeneratePracticePage() {
           knowledgePoint: point.name,
         },
       ],
-      "2": [
-        {
-          id: "q1",
-          question: "What is the vertex form of y = x² + 6x + 8?",
-          type: "multiple-choice",
-          options: [
-            "y = (x + 3)² - 1",
-            "y = (x + 3)² + 1",
-            "y = (x - 3)² - 1",
-            "y = (x - 3)² + 1",
-          ],
-          correctAnswer: "y = (x + 3)² - 1",
-          explanation: "Complete the square: y = (x² + 6x + 9) - 9 + 8 = (x + 3)² - 1",
-          knowledgePoint: point.name,
-        },
-        {
-          id: "q2",
-          question: "Find the roots of x² - 5x + 6 = 0",
-          type: "multiple-choice",
-          options: ["x = 1, 6", "x = 2, 3", "x = -2, -3", "x = -1, -6"],
-          correctAnswer: "x = 2, 3",
-          explanation: "Factor: (x - 2)(x - 3) = 0, so x = 2 or x = 3",
-          knowledgePoint: point.name,
-        },
-        {
-          id: "q3",
-          question: "What is the axis of symmetry for y = 2x² - 8x + 5?",
-          type: "multiple-choice",
-          options: ["x = 1", "x = 2", "x = 3", "x = 4"],
-          correctAnswer: "x = 2",
-          explanation: "The axis of symmetry is x = -b/(2a) = -(-8)/(2×2) = 8/4 = 2",
-          knowledgePoint: point.name,
-        },
-        {
-          id: "q4",
-          question: "Which quadratic has a minimum value of -4 at x = 1?",
-          type: "multiple-choice",
-          options: [
-            "y = (x - 1)² - 4",
-            "y = (x + 1)² - 4",
-            "y = -(x - 1)² - 4",
-            "y = -(x + 1)² + 4",
-          ],
-          correctAnswer: "y = (x - 1)² - 4",
-          explanation: "Vertex form y = a(x - h)² + k with vertex (1, -4) and a > 0 for minimum",
-          knowledgePoint: point.name,
-        },
-        {
-          id: "q5",
-          question: "Solve x² + 4x - 5 = 0 using the quadratic formula",
-          type: "multiple-choice",
-          options: ["x = 1, -5", "x = -1, 5", "x = 1, 5", "x = -1, -5"],
-          correctAnswer: "x = 1, -5",
-          explanation: "x = (-4 ± √(16+20))/2 = (-4 ± 6)/2, giving x = 1 or x = -5",
-          knowledgePoint: point.name,
-        },
-      ],
     }
 
     const defaultQuestions: Question[] = [
@@ -190,43 +329,7 @@ export default function GeneratePracticePage() {
         type: "multiple-choice",
         options: ["Option A", "Option B", "Option C", "Option D"],
         correctAnswer: "Option A",
-        explanation: "This is a sample question. In a real application, questions would be generated based on the specific knowledge point.",
-        knowledgePoint: point.name,
-      },
-      {
-        id: "q2",
-        question: `Apply ${point.name} to solve this problem`,
-        type: "multiple-choice",
-        options: ["Answer 1", "Answer 2", "Answer 3", "Answer 4"],
-        correctAnswer: "Answer 2",
-        explanation: "This demonstrates the application of the concept with step-by-step reasoning.",
-        knowledgePoint: point.name,
-      },
-      {
-        id: "q3",
-        question: `Which statement about ${point.name} is correct?`,
-        type: "multiple-choice",
-        options: ["Statement A", "Statement B", "Statement C", "Statement D"],
-        correctAnswer: "Statement C",
-        explanation: "Understanding this principle is key to mastering the topic.",
-        knowledgePoint: point.name,
-      },
-      {
-        id: "q4",
-        question: `Advanced problem involving ${point.name}`,
-        type: "multiple-choice",
-        options: ["Solution 1", "Solution 2", "Solution 3", "Solution 4"],
-        correctAnswer: "Solution 2",
-        explanation: "This problem requires deeper understanding and multi-step reasoning.",
-        knowledgePoint: point.name,
-      },
-      {
-        id: "q5",
-        question: `Critical thinking: ${point.name} application`,
-        type: "multiple-choice",
-        options: ["Result A", "Result B", "Result C", "Result D"],
-        correctAnswer: "Result D",
-        explanation: "This tests your ability to apply the concept in novel situations.",
+        explanation: "This is a sample question.",
         knowledgePoint: point.name,
       },
     ]
@@ -289,15 +392,17 @@ export default function GeneratePracticePage() {
 
     practiceStorage.savePracticeRecord(record)
 
-    const newCorrectRate = ((selectedPoint.correctRate * selectedPoint.questionsAnswered + correctCount) /
-      (selectedPoint.questionsAnswered + questions.length))
-    const newWeaknessLevel = Math.max(0, 100 - newCorrectRate)
+    if (selectedPoint.id !== 'custom' && selectedPoint.id !== 'topic' && selectedPoint.id !== 'personalized') {
+      const newCorrectRate = ((selectedPoint.correctRate * selectedPoint.questionsAnswered + correctCount) /
+        (selectedPoint.questionsAnswered + questions.length))
+      const newWeaknessLevel = Math.max(0, 100 - newCorrectRate)
 
-    practiceStorage.updateWeakPoint(selectedPoint.id, {
-      questionsAnswered: selectedPoint.questionsAnswered + questions.length,
-      correctRate: Math.round(newCorrectRate),
-      weaknessLevel: Math.round(newWeaknessLevel),
-    })
+      practiceStorage.updateWeakPoint(selectedPoint.id, {
+        questionsAnswered: selectedPoint.questionsAnswered + questions.length,
+        correctRate: Math.round(newCorrectRate),
+        weaknessLevel: Math.round(newWeaknessLevel),
+      })
+    }
   }
 
   const handleRetry = () => {
@@ -312,7 +417,7 @@ export default function GeneratePracticePage() {
   }
 
   const currentQuestion = questions[currentQuestionIndex]
-  const progress = ((currentQuestionIndex + 1) / questions.length) * 100
+  const progress = questions.length > 0 ? ((currentQuestionIndex + 1) / questions.length) * 100 : 0
 
   return (
     <div className="min-h-screen bg-background">
@@ -337,7 +442,7 @@ export default function GeneratePracticePage() {
             <div className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-primary" />
               <h1 className="text-xl font-semibold text-foreground">
-                {viewMode === "selection" && "Select Weak Knowledge Point"}
+                {viewMode === "selection" && "Practice"}
                 {viewMode === "practice" && "Practice Session"}
                 {viewMode === "analysis" && "Session Analysis"}
               </h1>
@@ -348,7 +453,7 @@ export default function GeneratePracticePage() {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-12">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           {/* Generating Overlay */}
           {isGenerating && (
             <div className="space-y-6">
@@ -393,122 +498,178 @@ export default function GeneratePracticePage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {selectedPoint && (
-                <Card className="border-border/50 bg-card">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Selected Topic</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-semibold text-foreground">{selectedPoint.name}</h3>
-                        <Badge variant="secondary" className="text-xs">
-                          {selectedPoint.category}
-                        </Badge>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <div className="flex items-center gap-3">
-                          <Zap className={`h-4 w-4 ${
-                            selectedPoint.weaknessLevel > 75 ? "text-destructive" :
-                            selectedPoint.weaknessLevel > 60 ? "text-orange-500" :
-                            "text-yellow-500"
-                          }`} />
-                          <span className="text-sm font-medium">
-                            {selectedPoint.weaknessLevel}% weak
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {selectedPoint.correctRate}% correct rate
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
             </div>
           )}
 
-          {/* Selection Mode */}
+          {/* Selection Mode with Tabs */}
           {viewMode === "selection" && !isGenerating && (
-            <div className="space-y-6">
-              <Card className="border-border/50 bg-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingDown className="h-5 w-5 text-destructive" />
-                    Your Weak Knowledge Points
-                  </CardTitle>
-                  <CardDescription>
-                    Select a topic you want to improve. Topics are sorted by weakness level.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {weakPoints.map((point) => (
-                    <Card
-                      key={point.id}
-                      className="border-border/50 bg-card/50 hover:bg-accent/5 cursor-pointer transition-all hover:shadow-md"
-                      onClick={() => handleSelectKnowledgePoint(point)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div className="flex items-start justify-between">
-                            <div className="space-y-1">
-                              <h3 className="font-semibold text-foreground">{point.name}</h3>
-                              <Badge variant="secondary" className="text-xs">
-                                {point.category}
-                              </Badge>
-                            </div>
-                            <div className="text-right space-y-1">
-                              <div className="flex items-center gap-3">
-                                <Zap className={`h-4 w-4 ${
-                                  point.weaknessLevel > 75 ? "text-destructive" :
-                                  point.weaknessLevel > 60 ? "text-orange-500" :
-                                  "text-yellow-500"
-                                }`} />
-                                <span className="text-sm font-medium">
-                                  {point.weaknessLevel}% weak
-                                </span>
+            <Tabs defaultValue="question-bank" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto mb-8">
+                <TabsTrigger value="question-bank" className="gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Question Bank
+                </TabsTrigger>
+                <TabsTrigger value="personalized" className="gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  Personalized
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Tab 1: Question Bank by Knowledge Point */}
+              <TabsContent value="question-bank">
+                <Card className="border-border/50 bg-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-primary" />
+                      Question Bank by Topic
+                    </CardTitle>
+                    <CardDescription>
+                      Browse all {questionsData.length} questions organized by knowledge points. Click any topic to practice.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[600px] pr-4">
+                      <Accordion type="single" collapsible defaultValue={categories[0]} className="w-full">
+                        {categories.map(category => (
+                          <AccordionItem key={category} value={category} className="border-b border-border">
+                            <AccordionTrigger className="hover:no-underline py-4">
+                              <div className="flex items-center gap-2 w-full">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <h3 className="font-semibold text-sm text-foreground">{category}</h3>
+                                <Badge variant="outline" className="text-xs ml-auto mr-2">
+                                  {categorizedKnowledge.get(category)?.length || 0} topics
+                                </Badge>
                               </div>
-                              <p className="text-xs text-muted-foreground">
-                                {point.correctRate}% correct rate
-                              </p>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4">
+                              <div className="grid gap-2 pl-6">
+                                {(categorizedKnowledge.get(category) || []).map(kp => {
+                                  const questionCount = questionsByKnowledge.get(kp)?.length || 0
+                                  return (
+                                    <Card
+                                      key={kp}
+                                      className="border-border/50 bg-card/50 hover:bg-accent/10 cursor-pointer transition-all group"
+                                      onClick={() => handleKnowledgePointClick(kp)}
+                                    >
+                                      <CardContent className="p-3">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex-1">
+                                            <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                                              {kp}
+                                            </p>
+                                          </div>
+                                          <Badge variant="secondary" className="text-xs">
+                                            {questionCount} {questionCount === 1 ? 'question' : 'questions'}
+                                          </Badge>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  )
+                                })}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Tab 2: Personalized Practice (Weak Points) */}
+              <TabsContent value="personalized">
+                <div className="space-y-6">
+                  <Card className="border-border/50 bg-card">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <TrendingDown className="h-5 w-5 text-destructive" />
+                        Your Weak Knowledge Points
+                      </CardTitle>
+                      <CardDescription>
+                        Practice topics you need to improve. Click any topic or use "Custom Generation" for more options.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {weakestPoints.map((point) => (
+                        <Card
+                          key={point.id}
+                          className="border-border/50 bg-card/50 hover:bg-accent/5 cursor-pointer transition-all hover:shadow-md"
+                          onClick={() => handleSelectKnowledgePoint(point as WeakKnowledgePoint)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <h3 className="font-semibold text-foreground">{point.name}</h3>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {point.category}
+                                  </Badge>
+                                </div>
+                                <div className="text-right space-y-1">
+                                  <div className="flex items-center gap-3">
+                                    <Zap className={`h-4 w-4 ${
+                                      point.weaknessLevel > 75 ? "text-destructive" :
+                                      point.weaknessLevel > 60 ? "text-orange-500" :
+                                      "text-yellow-500"
+                                    }`} />
+                                    <span className="text-sm font-medium">
+                                      {point.weaknessLevel}% weak
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {point.correctRate}% correct rate
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-xs text-muted-foreground">
+                                  <span>Progress</span>
+                                  <span>{point.questionsAnswered} questions answered</span>
+                                </div>
+                                <Progress value={100 - point.weaknessLevel} className="h-2" />
+                              </div>
                             </div>
-                          </div>
-                          <div className="space-y-1">
-                            <div className="flex justify-between text-xs text-muted-foreground">
-                              <span>Progress</span>
-                              <span>{point.questionsAnswered} questions answered</span>
-                            </div>
-                            <Progress value={100 - point.weaknessLevel} className="h-2" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  <Button
+                    className="w-full gap-2"
+                    size="lg"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Custom Question Generation
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
           )}
 
           {/* Practice Mode */}
           {viewMode === "practice" && currentQuestion && (
             <div className="space-y-6">
-              {/* Progress Bar */}
-              <Card className="border-border/50 bg-card">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Question {currentQuestionIndex + 1} of {questions.length}
-                      </span>
-                      <span className="font-medium text-foreground">{Math.round(progress)}%</span>
+              {/* Progress Bar and Timer */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-border/50 bg-card">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Question {currentQuestionIndex + 1} of {questions.length}
+                        </span>
+                        <span className="font-medium text-foreground">{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <Progress value={progress} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Question Card */}
+                <QuestionTimer startTime={questionStartTime} />
+              </div>
+
               <Card className="border-border/50 bg-card">
                 <CardHeader>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
@@ -541,12 +702,10 @@ export default function GeneratePracticePage() {
                   {currentQuestion.type === "short-answer" && (
                     <div className="space-y-2">
                       <Label htmlFor="answer">Your Answer</Label>
-                      <Textarea
-                        id="answer"
+                      <RichTextEditor
                         value={currentAnswer}
-                        onChange={(e) => setCurrentAnswer(e.target.value)}
-                        placeholder="Type your answer here..."
-                        className="min-h-[120px]"
+                        onChange={setCurrentAnswer}
+                        placeholder="Type your answer here... You can use formatting tools above."
                       />
                     </div>
                   )}
@@ -581,7 +740,6 @@ export default function GeneratePracticePage() {
           {/* Analysis Mode */}
           {viewMode === "analysis" && (
             <div className="space-y-6">
-              {/* Summary Card */}
               <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-secondary/5">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -625,7 +783,6 @@ export default function GeneratePracticePage() {
                 </CardContent>
               </Card>
 
-              {/* Detailed Results */}
               <Card className="border-border/50 bg-card">
                 <CardHeader>
                   <CardTitle>Question Details & Explanations</CardTitle>
@@ -678,7 +835,6 @@ export default function GeneratePracticePage() {
                                     <p className="text-foreground">{question.explanation}</p>
                                   </div>
 
-                                  {/* Deep Analysis Button */}
                                   <div className="pt-2">
                                     <Link
                                       href={`/solver?question=${encodeURIComponent(question.question)}&answer=${encodeURIComponent(question.correctAnswer)}&context=${encodeURIComponent(`Topic: ${selectedPoint?.name || 'Practice'}`)}`}
@@ -704,10 +860,9 @@ export default function GeneratePracticePage() {
                 </CardContent>
               </Card>
 
-              {/* Action Buttons */}
               <div className="flex gap-4">
                 <Button variant="outline" onClick={handleRetry} className="flex-1">
-                  Practice Another Topic
+                  Practice Again
                 </Button>
                 <Link href="/practice/records" className="flex-1">
                   <Button className="w-full">View All Records</Button>
@@ -717,6 +872,14 @@ export default function GeneratePracticePage() {
           )}
         </div>
       </main>
+
+      {/* Question Generation Modal */}
+      <QuestionGenerationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        availableKnowledgePoints={knowledgeGraph.nodes}
+        onGenerate={handleGenerateQuestions}
+      />
     </div>
   )
 }
