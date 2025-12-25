@@ -3,13 +3,14 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Sparkles, CheckCircle2, XCircle, Clock, TrendingUp, Network } from "lucide-react"
+import { ArrowLeft, Sparkles, CheckCircle2, XCircle, Clock, TrendingUp, Network, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KnowledgeStarMap } from "@/components/knowledge-star-map"
 import { QuestionGenerationModal, QuestionGenerationConfig } from "@/components/question-generation-modal"
+import { PracticeAnalytics } from "@/components/practice-analytics"
 import { generateKnowledgeGraph, getRelatedKnowledgePoints, KnowledgeNode } from "@/lib/knowledge-graph"
 import questionsData from "@/data/data.json"
 
@@ -257,10 +258,14 @@ export default function PracticeRecordsPage() {
           ) : (
             // List View (existing tabs)
             <Tabs defaultValue="knowledge-map" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+            <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto">
               <TabsTrigger value="knowledge-map" className="gap-2">
                 <Network className="h-4 w-4" />
                 Knowledge Map
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
               </TabsTrigger>
               <TabsTrigger value="records" className="gap-2">
                 <TrendingUp className="h-4 w-4" />
@@ -325,6 +330,18 @@ export default function PracticeRecordsPage() {
                   Generate Custom Practice
                 </Button>
               </div>
+            </TabsContent>
+
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="space-y-6 mt-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-bold text-foreground">Learning Analytics</h2>
+                <p className="text-muted-foreground">
+                  Track your progress and study patterns over time
+                </p>
+              </div>
+
+              <PracticeAnalytics records={records} />
             </TabsContent>
 
             {/* Practice Records Tab */}

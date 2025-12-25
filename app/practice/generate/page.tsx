@@ -19,6 +19,7 @@ import { WeakKnowledgePoint, Question, UserAnswer, PracticeRecord } from "@/type
 import { extractKnowledgePoints, generateKnowledgeGraph, getWeakestKnowledgePoints } from "@/lib/knowledge-graph"
 import { QuestionGenerationModal, QuestionGenerationConfig } from "@/components/question-generation-modal"
 import { RichTextEditor } from "@/components/rich-text-editor"
+import { QuestionTimer } from "@/components/question-timer"
 import questionsData from "@/data/data.json"
 
 type ViewMode = "selection" | "practice" | "analysis"
@@ -650,19 +651,24 @@ export default function GeneratePracticePage() {
           {/* Practice Mode */}
           {viewMode === "practice" && currentQuestion && (
             <div className="space-y-6">
-              <Card className="border-border/50 bg-card">
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Question {currentQuestionIndex + 1} of {questions.length}
-                      </span>
-                      <span className="font-medium text-foreground">{Math.round(progress)}%</span>
+              {/* Progress Bar and Timer */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className="border-border/50 bg-card">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          Question {currentQuestionIndex + 1} of {questions.length}
+                        </span>
+                        <span className="font-medium text-foreground">{Math.round(progress)}%</span>
+                      </div>
+                      <Progress value={progress} className="h-2" />
                     </div>
-                    <Progress value={progress} className="h-2" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                <QuestionTimer startTime={questionStartTime} />
+              </div>
 
               <Card className="border-border/50 bg-card">
                 <CardHeader>
