@@ -102,6 +102,8 @@ export default function DashboardPage() {
   }, []);
 
   const handleFileUpload = useCallback(async () => {
+    setIsLoadingData(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     setActiveKnowledge("");
     setKnowledgeStats(null);
     setSearchKnowledge("");
@@ -294,7 +296,7 @@ export default function DashboardPage() {
                       size="lg"
                       onClick={() => {
                         fileInputRef.current?.click();
-                        handleFileUpload();
+                        // handleFileUpload();
                       }}
                       disabled={isLoadingData}
                       className="gap-2"
